@@ -33,8 +33,7 @@ function example(
   noUse: string,
   mouth: 'small mouth' | 'big mouth',
   teeth?: number
-) { return 
-  `
+) { return `
 Hey, my name is ${firstName} ${lastName}. 
 I am under number ${numberValue}, I have a ${noUse}, and 
 very ${mouth} with ${teeth}
@@ -82,6 +81,9 @@ const worker: Employee = {
   name: "Tim",
   age: 28,
   employeeId: 185,
+  hello: function() {
+    console.log(`${this.name} says Hi!`)
+  }
 }
 
 worker.hello?.()

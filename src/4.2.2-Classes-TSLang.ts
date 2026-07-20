@@ -1,78 +1,35 @@
-// =============================================================================
-// TypeScript Classes — a reading lesson
-// =============================================================================
-// Based on (and paraphrased from) the official TypeScript Handbook:
-// https://www.typescriptlang.org/docs/handbook/2/classes.html
+// TypeScript Classes — learning notes and examples
+// Source (official Handbook): https://www.typescriptlang.org/docs/handbook/2/classes.html
 //
-// Read from top to bottom. Every active example in this file is valid TypeScript
-// and is used, so it can be checked with `tsc --noEmit` without LSP warnings.
-// Examples that WOULD cause an error are kept as comments beginning with `// ❌`.
+// A class is a blueprint for creating objects. Each created object is called
+// an "instance". Classes are JavaScript; TypeScript adds type checking.
 
-export {}; // Makes this file a module, so its names do not pollute other lessons.
-
-// =============================================================================
-// Chapter 1 — What is a class?
-// =============================================================================
-// A class is a blueprint for objects. `new` creates an instance of that class.
-// TypeScript supports JavaScript classes and adds type annotations and checking.
-
-class EmptyClass {}
-
-const emptyObject = new EmptyClass();
-console.log('An instance:', emptyObject);
-
-// =============================================================================
-// Chapter 2 — Fields (properties)
-// =============================================================================
-// A field is data stored on each instance. Fields are public and writable unless
-// a modifier says otherwise.
+// ---------------------------------------------------------------------------
+// 1. Fields (data stored on every instance)
+// ---------------------------------------------------------------------------
 
 class Person {
+  // These are public fields by default.
   name: string;
-  age: number;
+  public age: number;
 
-  // An initializer runs whenever an instance is created.
-  country = 'Estonia';
+  // A field can have an initial value. TypeScript infers `string` from it.
+  country: string = "Estonia";
 
   constructor(name: string, age: number) {
-    // With `strictPropertyInitialization`, every declared field must either have
-    // an initializer or be assigned in the constructor.
+    // With `strictPropertyInitialization`, fields without initial values must
+    // be assigned in the constructor.
     this.name = name;
     this.age = age;
   }
 }
 
 const danila = new Person('Danila', 28);
-console.log(danila.name, danila.age, danila.country);
+console.log(danila.name); // Danila
 
-// A value in an initializer is used to infer a field type.
-class Coordinate {
-  x = 0; // inferred as number
-  y = 0;
-}
-
-const coordinate = new Coordinate();
-coordinate.x = 10;
-console.log(coordinate);
-// ❌ coordinate.x = '10'; // A string cannot be assigned to a number field.
-
-// The `!` definite-assignment assertion means: "I promise this gets assigned
-// before it is read." It silences TypeScript; it does NOT initialize a value.
-// It is useful when a framework/library assigns the property later.
-class ProfileLoadedByApi {
-  name!: string;
-}
-
-const profile = new ProfileLoadedByApi();
-profile.name = 'Loaded after construction';
-console.log(profile.name);
-
-// =============================================================================
-// Chapter 3 — readonly fields
-// =============================================================================
-// `readonly` permits assignment in a field initializer or constructor only.
-
-class UserAccount {
+// `readonly` allows assignment while declaring the field or in the constructor,
+// but prevents changing it later.
+class Account {
   readonly id: number;
 
   constructor(id: number) {
@@ -80,52 +37,32 @@ class UserAccount {
   }
 }
 
-const account = new UserAccount(101);
+const account55 = new Account(53);
+console.log(account55.id);
+
+const account = new Account(1);
 console.log(account.id);
-// ❌ account.id = 102; // Cannot assign to a readonly property.
+// account.id = 2; // Error: Cannot assign to a readonly property.
 
-// =============================================================================
-// Chapter 4 — Constructors
-// =============================================================================
-// A constructor runs when `new ClassName(...)` is called. It accepts typed
-// parameters and default values like a normal function.
-// Constructors cannot have a return type annotation: `new` always returns the
-// instance type of the class. Constructors also cannot have their own generics.
-
-class Point {
-  constructor(
-    public x = 0,
-    public y = 0,
-  ) {}
+// `!` is a definite-assignment assertion. It means: "Trust me, this property
+// will receive a value later." Use it carefully; TypeScript will not protect
+// you from reading an uninitialized value at runtime.
+class ProfileLoadedLater {
+  name!: string;
 }
 
-const originPoint = new Point();
-const customPoint = new Point(3, 4);
-console.log(originPoint, customPoint);
+const loadedProfile = new ProfileLoadedLater();
+// Imagine an API or a library fills this value after the object is created.
+loadedProfile.name = 'Loaded from an API';
+console.log(loadedProfile.name);
 
-// Constructor overloads use signatures followed by one implementation.
-class Label {
-  value: string;
-
-  constructor(value: string);
-  constructor(value: number);
-  constructor(value: string | number) {
-    this.value = String(value);
-  }
-}
-
-console.log(new Label('hello').value, new Label(42).value);
-
-// =============================================================================
-// Chapter 5 — Methods and `this`
-// =============================================================================
-// A method is a function property on a class. Use `this.` to access members on
-// the current object. A bare name looks in the surrounding scope, not the class.
-
+// ---------------------------------------------------------------------------
+// 2. Constructor and parameter properties
+// ---------------------------------------------------------------------------
 class Counter {
   private count = 0;
-
   increase(by: number): void {
+    // Use `this.` to access fields and other methods on this instance.
     this.count += by;
   }
 
@@ -134,16 +71,82 @@ class Counter {
   }
 }
 
-const counter = new Counter();
-counter.increase(2);
-console.log(counter.getCount());
+const counter2 = new Counter();
+const counter1 = new Counter();
 
-// =============================================================================
-// Chapter 6 — Getters and setters
-// =============================================================================
-// Accessors run code when a property is read (`get`) or written (`set`). Use
-// them for validation or conversion; a simple public field needs no accessor.
-// A getter with no setter is automatically readonly.
+counter2.increase(5);
+counter2.increase(10);
+counter2.increase(8);
+
+counter1.increase(2);
+
+// We cannot modify counter straight as the property is private
+console.log(`The count of a counter is ${counter2.getCount()}`);
+console.log(`The count of a counter is ${counter1.getCount()}`); // 2
+
+
+// ---------------------------------------------------------------------------
+// 3. Methods and `this`
+// ---------------------------------------------------------------------------
+// Constructors are similar to functions: parameters may have types and defaults.
+// Constructors do NOT have return type annotations: `new Car()` returns Car.
+class Point {
+  constructor(
+    public x?: number,
+    public y?: number,
+  ) {}
+}
+
+const point1 = new Point(155, 203);
+const zeroPoint = new Point();
+
+console.log(`The points are - x: ${point1.x}, y: ${point1.y}`);
+
+// Checking if the points are undefined or null we pass them 0 of x, y properties.
+console.log(`The points are - x: ${zeroPoint?.x ?? 0}, ${zeroPoint?.y ?? 0}`);
+
+class Car extends Point {
+  // `public`, `private`, `protected`, or `readonly` in a constructor parameter
+  // creates and assigns a class field automatically.
+  constructor(
+    public brand: string,
+    public model: string,
+    public readonly year: number,
+  ) {
+    super();
+  }
+  drive(): void {
+    console.log(`I'm driving ${this.brand} car!`);
+    
+  }
+}
+
+const bmw = new Car('BMW', 'i8', 2005);
+const audi = new Car('Audi', 'A6', 2024);
+const mercedesBenz = new Car('Mercedes Benz', 'AMG', 2026);
+
+console.log(`Welcome back, and my car is ${bmw.brand} ${bmw.model} and it's of ${bmw.year} year.`);
+console.log(`Welcome back, and my car is ${audi.brand} ${audi.model} and it's of ${audi.year} year.`);
+console.log(`Welcome back, and my car is ${mercedesBenz.brand} ${mercedesBenz.model} and it's of ${mercedesBenz.year} year.`);
+
+// audi.year = 2025; // Error: `year` is readonly.
+
+// A method can declare the type of `this` as its first parameter. This parameter
+// exists only for TypeScript checking; it is not a real runtime argument.
+class Database {
+  filterUsers(filter: (this: Database, name: string) => boolean): string[] {
+    return ['Danila', 'Tom'].filter((name) => filter.call(this, name));
+  }
+}
+
+const database = new Database();
+console.log(database.filterUsers(function (name) {
+  return name.startsWith('D');
+}));
+
+// ---------------------------------------------------------------------------
+// 4. Getters and setters (accessors)
+// ---------------------------------------------------------------------------
 
 class Temperature {
   private celsius = 0;
@@ -159,51 +162,15 @@ class Temperature {
 
 const temperature = new Temperature();
 temperature.fahrenheit = 68;
-console.log(temperature.fahrenheit);
+console.log(temperature.fahrenheit); // 68
 
-// Getter and setter types may differ. Here callers may set text, a number, or
-// a boolean, but reading always gives a number.
-class Size {
-  private value = 0;
+// A getter without a setter is automatically readonly.
+// Do not add getters/setters when a public field is enough; accessors are useful
+// when reading or writing needs validation, conversion, or other logic.
 
-  get size(): number {
-    return this.value;
-  }
-
-  set size(input: string | number | boolean) {
-    const numberValue = Number(input);
-    this.value = Number.isFinite(numberValue) ? numberValue : 0;
-  }
-}
-
-const size = new Size();
-size.size = '20';
-console.log(size.size);
-
-// =============================================================================
-// Chapter 7 — Index signatures
-// =============================================================================
-// An index signature allows dynamic keys. Its value type must include the types
-// of all methods too, which often makes it awkward. Prefer a separate object or
-// Map for indexed data in most real programs.
-
-class FlagStore {
-  [key: string]: boolean | ((key: string) => boolean);
-
-  has(key: string): boolean {
-    return this[key] === true;
-  }
-}
-
-const flags = new FlagStore();
-flags.darkMode = true;
-console.log(flags.has('darkMode'));
-
-// =============================================================================
-// Chapter 8 — `implements`: satisfy an interface
-// =============================================================================
-// `implements` checks that a class has a required shape. It does not add fields,
-// change inferred method parameter types, or create optional interface members.
+// ---------------------------------------------------------------------------
+// 5. `implements`: check a class against an interface
+// ---------------------------------------------------------------------------
 
 interface Printable {
   print(): void;
@@ -217,7 +184,7 @@ class Invoice implements Printable, Serializable {
   constructor(public total: number) {}
 
   print(): void {
-    console.log(`Invoice: ${this.total}`);
+    console.log(`Invoice total: ${this.total}`);
   }
 
   toJSON(): string {
@@ -228,13 +195,14 @@ class Invoice implements Printable, Serializable {
 const invoice = new Invoice(99);
 invoice.print();
 console.log(invoice.toJSON());
-// ❌ class BrokenInvoice implements Printable {} // `print` is missing.
 
-// =============================================================================
-// Chapter 9 — `extends`, `super`, and overriding
-// =============================================================================
-// `extends` makes a derived class inherit instance fields and methods.
-// In a derived constructor, call `super(...)` before any use of `this`.
+// `implements` only checks the class shape. It does not add properties or infer
+// parameter types inside the class. Still write types in your method definitions.
+// Optional interface members also are NOT created automatically on the class.
+
+// ---------------------------------------------------------------------------
+// 6. `extends`: inherit from another class
+// ---------------------------------------------------------------------------
 
 class Animal {
   constructor(public name: string) {}
@@ -246,85 +214,44 @@ class Animal {
 
 class Dog extends Animal {
   constructor(name: string, public breed: string) {
+    // In a derived constructor, call `super()` before using `this`.
     super(name);
   }
 
-  bark(times: number): void {
-    console.log('Woof! '.repeat(times));
+  bark(): void {
+    console.log('Woof!');
   }
 
-  // `override` documents and checks that this replaces an inherited member.
-  // Turn on `noImplicitOverride` in tsconfig.json to require this keyword.
+  // This overrides the method inherited from Animal.
   override move(distance = 5): void {
-    super.move(distance);
-    console.log(`${this.name} is a ${this.breed}.`);
+    super.move(distance); // Call the parent implementation when useful.
+    console.log(`${this.name} ran happily.`);
   }
 }
 
-const rex = new Dog('Rex', 'German Shepherd');
-rex.move();
-rex.bark(2);
+const dog = new Dog('Rex', 'German Shepherd');
+dog.move();
+dog.bark();
 
-// An override must remain compatible with the base-class contract. For example,
-// do not make an optional/base default parameter required in the subclass.
-// ❌ override move(distance: number): void { ... } // Unsafe if Animal is used.
+// An overridden method must still be usable wherever the base class is expected.
+// For example, do not change `move(distance = 0)` to require a distance argument.
+// Enable `noImplicitOverride` in tsconfig.json to require the `override` keyword.
 
-// JavaScript initialization order for inheritance:
-// 1. Base fields initialize.  2. Base constructor runs.
-// 3. Derived fields initialize.  4. Derived constructor runs.
-// Therefore a base constructor sees base field values, not derived replacements.
+// Initialization order for inherited classes:
+// 1. Base fields initialize
+// 2. Base constructor runs
+// 3. Derived fields initialize
+// 4. Derived constructor runs
+// Therefore, avoid depending on derived field values in a base constructor.
 
-// `declare` redeclares a more precise inherited field type without emitting a
-// JavaScript field initializer. This avoids overwriting the parent's value.
-interface Pet {
-  name: string;
-}
-
-interface DogPet extends Pet {
-  breed: string;
-}
-
-class PetHouse {
-  constructor(public resident: Pet) {}
-}
-
-class DogHouse extends PetHouse {
-  declare resident: DogPet;
-
-  constructor(dog: DogPet) {
-    super(dog);
-  }
-}
-
-console.log(new DogHouse({ name: 'Rex', breed: 'Husky' }).resident.breed);
-
-// When targeting old JavaScript (ES5), inheriting built-ins such as Error can
-// need a prototype repair. Prefer ES2015+ if possible.
-class MessageError extends Error {
-  constructor(message: string) {
-    super(message);
-    Object.setPrototypeOf(this, MessageError.prototype);
-  }
-
-  sayHello(): string {
-    return `Hello: ${this.message}`;
-  }
-}
-
-console.log(new MessageError('Something happened').sayHello());
-
-// =============================================================================
-// Chapter 10 — Visibility: public, protected, private, and #private
-// =============================================================================
-// `public` is the default: everyone can access it.
-// `protected` is available in this class and its subclasses.
-// `private` is available only in this class, but TypeScript private is a
-// type-system check, not hard JavaScript runtime privacy.
+// ---------------------------------------------------------------------------
+// 7. Visibility: public, protected, and private
+// ---------------------------------------------------------------------------
 
 class Employee {
-  public name: string;
-  protected department: string;
-  private salary: number;
+  public name: string; // Accessible anywhere (the default).
+  protected department: string; // This class and subclasses can access it.
+  private salary: number; // Only this class can access it.
 
   constructor(name: string, department: string, salary: number) {
     this.name = name;
@@ -335,30 +262,21 @@ class Employee {
   getSalary(): number {
     return this.salary;
   }
-
-  sameSalaryAs(other: Employee): boolean {
-    // TypeScript permits private access to another instance of the SAME class.
-    return this.salary === other.salary;
-  }
 }
 
 class Developer extends Employee {
-  introduceDepartment(): string {
-    return this.department; // Allowed: it is protected.
+  introduceDepartment(): void {
+    console.log(this.department); // Allowed: Developer is a subclass.
   }
 }
 
-const tom = new Developer('Tom', 'Engineering', 5000);
-console.log(tom.name, tom.introduceDepartment(), tom.getSalary());
-console.log(tom.sameSalaryAs(new Employee('Sam', 'Design', 5000)));
-// ❌ console.log(tom.department); // protected is not public.
-// ❌ console.log(tom.salary); // private is not accessible outside Employee.
+const developer = new Developer('Tom', 'Engineering', 5000);
+console.log(developer.name); // Allowed: public.
+// console.log(developer.department); // Error: protected.
+// console.log(developer.salary); // Error: private.
 
-// A subclass can accidentally make a protected member public if it redeclares it
-// without `protected`. Repeat the modifier when you do not want exposure.
-
-// JavaScript `#private` fields are hard runtime private fields. They cannot be
-// accessed with dot notation OR bracket notation outside the class.
+// TypeScript `private` is checked by TypeScript. JavaScript `#private` fields
+// are enforced at runtime too, but have different JavaScript syntax:
 class SecureToken {
   #value = 'secret';
 
@@ -367,203 +285,50 @@ class SecureToken {
   }
 }
 
-console.log(new SecureToken().reveal());
+const token = new SecureToken();
+console.log(token.reveal());
 
-// =============================================================================
-// Chapter 11 — Static members and static blocks
-// =============================================================================
-// Static members belong to the class itself, not to each instance. Access them
-// as `ClassName.member`, not `new ClassName().member`. Static members inherit.
+// ---------------------------------------------------------------------------
+// 8. Static members belong to the class itself, not each instance
+// ---------------------------------------------------------------------------
 
 class MathHelper {
   static readonly pi = 3.14159;
-  private static calls = 0;
 
   static square(value: number): number {
-    MathHelper.calls += 1;
     return value * value;
   }
-
-  static getCallCount(): number {
-    return MathHelper.calls;
-  }
 }
 
-console.log(MathHelper.pi, MathHelper.square(4), MathHelper.getCallCount());
-// ❌ static name = 'bad'; // `name`, `length`, and `call` conflict with Function.
+console.log(MathHelper.pi);
+console.log(MathHelper.square(4));
+// const helper = new MathHelper();
+// helper.square(4); // Error: static members are accessed through the class.
 
-// TypeScript has no `static class`. If you need one shared helper, a top-level
-// function or object is commonly simpler than a class containing only statics.
-const helperObject = {
-  double(value: number): number {
-    return value * 2;
-  },
-};
-console.log(helperObject.double(5));
+// ---------------------------------------------------------------------------
+// 9. Generic classes
+// ---------------------------------------------------------------------------
 
-// A static block runs once when the class is evaluated. It has its own scope and
-// can access private static fields.
-class InstanceCounter {
-  static #nextId: number;
+class Box<T> {
+  constructor(public value: T) {}
 
-  static {
-    InstanceCounter.#nextId = 1;
-  }
-
-  readonly id = InstanceCounter.#nextId++;
-}
-
-console.log(new InstanceCounter().id, new InstanceCounter().id);
-
-// =============================================================================
-// Chapter 12 — Generic classes
-// =============================================================================
-// A generic class works with a type chosen when it is created. TypeScript can
-// infer that type from the constructor argument. Generics may have constraints
-// and defaults just like generic interfaces/functions.
-
-class Box<Type> {
-  constructor(public contents: Type) {}
-
-  get(): Type {
-    return this.contents;
+  getValue(): T {
+    return this.value;
   }
 }
 
 const numberBox = new Box<number>(42);
-const nameBox = new Box('Danila'); // inferred as Box<string>
-console.log(numberBox.get(), nameBox.get());
+const nameBox = new Box('Danila'); // TypeScript infers Box<string>.
+console.log(numberBox.getValue(), nameBox.getValue());
 
-// A static member cannot use the class type parameter: at runtime there is only
-// one static property slot for all Box<Type> instances.
-// ❌ class BadBox<T> { static defaultValue: T; }
+// The type parameter belongs on the class, not its constructor.
 
-// =============================================================================
-// Chapter 13 — `this` at runtime, `this` parameters, and `this` types
-// =============================================================================
-// In JavaScript, `this` depends on HOW a normal method is called. An arrow field
-// captures the instance's `this`, so it remains safe when passed as a callback.
-// Trade-off: every instance creates its own arrow function.
-
-class SafeNameReader {
-  name = 'SafeNameReader';
-
-  getName = (): string => this.name;
-}
-
-const reader = new SafeNameReader();
-const detachedReader = reader.getName;
-console.log(detachedReader());
-
-// A `this: ClassName` parameter exists only for TypeScript checking and is erased
-// from JavaScript. It prevents TypeScript callers from losing the method context.
-class CheckedNameReader {
-  name = 'CheckedNameReader';
-
-  getName(this: CheckedNameReader): string {
-    return this.name;
-  }
-}
-
-const checkedReader = new CheckedNameReader();
-console.log(checkedReader.getName());
-// ❌ const detached = checkedReader.getName; detached(); // wrong `this` context.
-
-// The special type `this` means the current (most-derived) class type. Returning
-// `this` enables fluent method chains while preserving a subclass's type.
-class FluentBox {
-  contents = '';
-
-  set(value: string): this {
-    this.contents = value;
-    return this;
-  }
-}
-
-class ClearableBox extends FluentBox {
-  clear(): this {
-    this.contents = '';
-    return this;
-  }
-}
-
-console.log(new ClearableBox().set('hello').clear().contents);
-
-// `this is SomeType` is a type guard: inside a successful `if`, TypeScript knows
-// the object has the promised type. This is useful for lazily validated fields.
-class MaybeBox<Type> {
-  value?: Type;
-
-  hasValue(): this is { value: Type } {
-    return this.value !== undefined;
-  }
-}
-
-const maybeBox = new MaybeBox<string>();
-maybeBox.value = 'Gameboy';
-if (maybeBox.hasValue()) {
-  console.log(maybeBox.value.toUpperCase()); // `value` is string here, not string | undefined.
-}
-
-// =============================================================================
-// Chapter 14 — Parameter properties, class expressions, constructors as types
-// =============================================================================
-// Prefixing a constructor parameter with public/private/protected/readonly both
-// declares the field and assigns the argument. This is a parameter property.
-
-class ParametersExample {
-  constructor(
-    public readonly x: number,
-    protected y: number,
-    private z: number,
-  ) {}
-
-  sum(): number {
-    return this.x + this.y + this.z;
-  }
-}
-
-const parametersExample = new ParametersExample(1, 2, 3);
-console.log(parametersExample.x, parametersExample.sum());
-
-// A class expression can be anonymous and assigned to a variable.
-const StringContainer = class<Type> {
-  constructor(public content: Type) {}
-};
-
-const message = new StringContainer('Hello, world!');
-console.log(message.content);
-
-// `typeof ClassName` is the constructor/static side of a class.
-// `InstanceType<typeof ClassName>` gives the type created by `new ClassName()`.
-class TimedPoint {
-  createdAt = Date.now();
-
-  constructor(
-    public x: number,
-    public y: number,
-  ) {}
-}
-
-type TimedPointInstance = InstanceType<typeof TimedPoint>;
-
-function moveRight(point: TimedPointInstance): void {
-  point.x += 5;
-}
-
-const timedPoint = new TimedPoint(3, 4);
-moveRight(timedPoint);
-console.log(timedPoint.x, timedPoint.createdAt);
-
-// =============================================================================
-// Chapter 15 — Abstract classes and abstract constructors
-// =============================================================================
-// An abstract class is a base blueprint. You cannot create it directly. Abstract
-// fields/methods have no implementation and concrete subclasses must implement
-// every abstract member.
+// ---------------------------------------------------------------------------
+// 10. Abstract classes: a base blueprint that cannot be created directly
+// ---------------------------------------------------------------------------
 
 abstract class Shape {
-  abstract getArea(): number;
+  abstract getArea(): number; // Every subclass must implement this method.
 
   describe(): void {
     console.log(`Area: ${this.getArea()}`);
@@ -580,58 +345,10 @@ class Circle extends Shape {
   }
 }
 
-// ❌ const shape = new Shape(); // Abstract classes cannot be instantiated.
+// const shape = new Shape(); // Error: abstract classes cannot be instantiated.
 const circle = new Circle(3);
 circle.describe();
 
-// Use `new () => Shape` when a function must accept a constructor that creates a
-// concrete Shape. `typeof Shape` could also be the abstract Shape constructor.
-function describeNewShape(ctor: new () => Shape): void {
-  new ctor().describe();
-}
-
-class UnitSquare extends Shape {
-  getArea(): number {
-    return 1;
-  }
-}
-
-describeNewShape(UnitSquare);
-// ❌ describeNewShape(Shape); // Shape itself is abstract and cannot be `new`.
-
-// =============================================================================
-// Chapter 16 — Relationships between classes
-// =============================================================================
-// TypeScript usually compares class instances structurally: if shapes match,
-// values may be assignable even without `extends`.
-
-class PointOne {
-  x = 0;
-  y = 0;
-}
-
-class PointTwo {
-  x = 0;
-  y = 0;
-}
-
-const pointOne: PointOne = new PointTwo(); // Same public structure: allowed.
-console.log(pointOne);
-
-// An empty class has no required members, so almost any value matches it. Avoid
-// using an empty class as a meaningful type; it tells TypeScript nothing useful.
-class EmptyType {}
-
-function acceptAnything(_: EmptyType): void {
-  console.log('An empty class accepts any object-shaped value.');
-}
-
-acceptAnything({});
-
-// =============================================================================
-// End — Practical reminder
-// =============================================================================
-// Use an interface when you only need a shape/contract.
-// Use a class when you need construction, instance data, methods, inheritance,
-// or shared runtime behavior. TypeScript types disappear at runtime; classes do
-// exist at runtime because they are JavaScript.
+// Key idea:
+// - Use an interface to describe a shape/contract.
+// - Use a class when you need actual data, methods, construction, or shared code.
